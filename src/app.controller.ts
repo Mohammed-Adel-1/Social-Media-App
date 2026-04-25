@@ -7,8 +7,8 @@ import { PORT } from "./config/config.service";
 import { AppError, globalErrorHandler } from "./common/utils/golbal.error.handler";
 import authRouter from "./modules/auth/auth.controller";
 import { checkConnectionDB } from "./DB/connectionDB";
-import { redisConection } from "./DB/redis/redis.db";
 import usersRouter from "./modules/users/users.controller";
+import redisService from "./common/service/redis.service";
 const app: express.Application = express();
 const port: number = Number(PORT);
 
@@ -29,7 +29,7 @@ const bootstrap = () => {
     app.use(cors(), helmet(), limiter);
 
     checkConnectionDB();
-    redisConection();
+    redisService.connect();
 
     app.use("/auth", authRouter);
     app.use("/users", usersRouter);

@@ -3,7 +3,7 @@ import { genderEnum } from "../../common/enum/user.enum";
 
 export const signUpSchema = {
     body: z.object({
-        userName: z.string().min(9).max(25),
+        userName: z.string().min(1).max(25),
         email: z.email(),
         password: z.string().min(6),
         cPassword: z.string().min(6),

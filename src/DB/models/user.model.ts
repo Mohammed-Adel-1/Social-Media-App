@@ -1,6 +1,11 @@
 import mongoose, { Model, Types } from "mongoose";
 import { genderEnum, providerEnum, roleEnum } from "../../common/enum/user.enum";
+import { NextFunction } from "express";
+import { hash } from "../../common/utils/security/hash";
 
+const systemOnlyRequired = function (this: IUser): boolean {
+    return this.provider == providerEnum.system ? true : false;
+}
 
 
 export interface IUser {
@@ -29,44 +34,47 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         required: true,
         trim: true,
-        min: 3,
-        max: 25
+        minLength: 3,
+        maxLength: 25
     },
     lastName: {
         type: String,
         required: true,
         trim: true,
-        unieue: true
+        minLength: 3,
+        maxLength: 25
     },
     email: {
         type: String,
         required: true,
         unique: true,
         trim: true,
-        min: 3,
-        max: 25
+        minLength: 3,
+        maxLength: 25
     },
     password: {
         type: String,
-        required: true,
+        required: systemOnlyRequired,
         trim: true,
-        min: 8,
-        max: 25
+        minLength: 8,
     },
     age: {
         type: Number,
-        required: true,
+        required: systemOnlyRequired,
         trim: true,
         min: 18,
         max: 60
     },
     phone: {
         type: String,
+        required: systemOnlyRequired,
         trim: true,
     },
     address: {
         type: String,
         trim: true,
+        minLength: 3,
+        maxLength: 30
     },
     gender: {
         type: String,
@@ -86,19 +94,34 @@ const userSchema = new mongoose.Schema<IUser>({
     confirmed: Boolean,
     changeCredential: Date
 
-},{
+}, {
     timestamps: true,
     strict: true,
-    toJSON: { virtuals: true},
-    toObject: { virtuals: true},
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
 });
 
 
 userSchema.virtual("userName").get(function () {
     return this.firstName + " " + this.lastName;
-}).set( function(val: string) {
+}).set(function (val: string) {
     this.set({ firstName: val.split(" ")[0], lastName: val.split(" ")[1] });
 })
+
+
+userSchema.pre('save', async function () {
+    if (this.isModified('password')) {
+        this.password = await hash({ plainText: this.password });
+    }
+})
+
+userSchema.pre('findOneAndUpdate', async function () {
+    const update = this.getUpdate() as any;
+
+    if (update.password) {
+        update.password = await hash({ plainText: update.password });
+    }
+});
 
 const userModel: Model<IUser> = mongoose.models.user || mongoose.model<IUser>("user", userSchema);
 export default userModel;

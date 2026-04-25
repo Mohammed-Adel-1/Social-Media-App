@@ -8,7 +8,7 @@ export const genderEnum = {
 export const roleEnum = {
     user: "user",
     admin: "admin",
-    superAdmin: "superAdmin",
+    // superAdmin: "superAdmin",
 }
 
 export const providerEnum = {

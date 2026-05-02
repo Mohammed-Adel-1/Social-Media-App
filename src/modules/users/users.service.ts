@@ -4,11 +4,13 @@ import { logOutDto, updatePasswordDto } from "./users.dto";
 import { AppError } from "../../common/utils/golbal.error.handler";
 import { compare, hash } from "../../common/utils/security/hash";
 import RedisService from "../../common/service/redis.service";
+import { S3Service } from "../../common/service/s3.service";
 
 class userService {
 
   private readonly _userModel = new UserRepository();
   private readonly _redisService = RedisService;
+  private readonly _s3Service = new S3Service();
   constructor() { };
 
   updatePassword = async (req: Request, res: Response, next: NextFunction) => {
@@ -70,6 +72,16 @@ class userService {
     }
 
     res.status(200).json({message: "User logged out successfully"});
+  };
+
+  uploadImage = async (req: Request, res: Response, next: NextFunction) => {
+
+    const key = await this._s3Service.uploadLargeFile({
+      file: req.file!,
+      path: "users/large"
+    });
+
+    res.status(200).json({message: "Image uploaded successfully", date: key});
   };
   
 }

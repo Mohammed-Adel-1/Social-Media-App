@@ -5,3 +5,8 @@ export const multer_enum = {
     video: ["video/mp4"],
     pdf: ["application/pdf"]
 }
+
+export enum store_enum {
+    disk = "disk",
+    memory = "memory"
+}

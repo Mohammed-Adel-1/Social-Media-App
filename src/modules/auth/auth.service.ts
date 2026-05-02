@@ -13,7 +13,7 @@ import { eventEmitter } from "../../common/utils/email/email.events";
 import { emailEnum } from "../../common/enum/email.enum";
 import { blockEnum } from "../../common/enum/block.enum";
 import { randomUUID } from "crypto";
-import { generateToken, verifyToken } from "../../common/utils/token.service";
+import { generateToken, verifyToken } from "../../common/service/token.service";
 import { providerEnum, roleEnum } from "../../common/enum/user.enum";
 import { ITokenPayload } from "../../common/middleware/authentication";
 import { OAuth2Client } from "google-auth-library";
@@ -212,7 +212,7 @@ class AuthService {
 
     const access_token = generateToken({
       payload: { id: user._id, email: user.email },
-      secret_key:  user.role === roleEnum.user ? ACCESS_SECRET_KEY_USER : ACCESS_SECRET_KEY_ADMIN,
+      secret_key: user.role === roleEnum.user ? ACCESS_SECRET_KEY_USER : ACCESS_SECRET_KEY_ADMIN,
       options: {
         expiresIn: 60 * 5,
       },
@@ -220,7 +220,7 @@ class AuthService {
 
     const refresh_token = generateToken({
       payload: { id: user._id, email: user.email },
-      secret_key:  user.role === roleEnum.user ? REFRESH_SECRET_KEY_USER : REFRESH_SECRET_KEY_ADMIN,
+      secret_key: user.role === roleEnum.user ? REFRESH_SECRET_KEY_USER : REFRESH_SECRET_KEY_ADMIN,
       options: {
         expiresIn: "1y",
       },

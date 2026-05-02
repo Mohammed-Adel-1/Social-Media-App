@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/golbal.error.handler";
 import { ACCESS_SECRET_KEY_ADMIN, ACCESS_SECRET_KEY_USER, PREFIX_ADMIN, PREFIX_USER } from "../../config/config.service";
-import { verifyToken } from "../utils/token.service";
+import { verifyToken } from "../service/token.service";
 import { JwtPayload } from "jsonwebtoken";
 import userModel, { IUser } from "../../DB/models/user.model";
 import redisService from "../service/redis.service";
@@ -21,14 +21,14 @@ const authentication = async (req: Request, res: Response, next: NextFunction) =
 
   const [prefix, token] = authorization.split(" ");
 
-  if(!prefix || !Object.values(roleEnum).includes(prefix)) throw new AppError("prefix is incorrect");
+  if (!prefix || !Object.values(roleEnum).includes(prefix)) throw new AppError("prefix is incorrect");
 
   if (token === undefined) throw new AppError("Token is required");
 
   let ACCESS_SECRET_KEY = "";
-  if(prefix === PREFIX_USER){
+  if (prefix === PREFIX_USER) {
     ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_USER;
-  } else if(prefix === PREFIX_ADMIN){
+  } else if (prefix === PREFIX_ADMIN) {
     ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_ADMIN;
   } else {
     throw new AppError("prefix is incorrect")

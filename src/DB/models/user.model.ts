@@ -18,8 +18,9 @@ export interface IUser {
     age: number,
     phone?: string,
     address?: string,
-    gender?: string
-    confirmed?: Boolean
+    gender?: string,
+    confirmed?: Boolean,
+    profilePic?: string
     role: string,
     provider: string,
     createdAt: Date,
@@ -92,7 +93,8 @@ const userSchema = new mongoose.Schema<IUser>({
         default: providerEnum.system
     },
     confirmed: Boolean,
-    changeCredential: Date
+    changeCredential: Date,
+    profilePic: String,
 
 }, {
     timestamps: true,
@@ -122,6 +124,18 @@ userSchema.pre('findOneAndUpdate', async function () {
         update.password = await hash({ plainText: update.password });
     }
 });
+
+// userSchema.pre('findOne', function() {
+//     const {paranoid, ...rest} = this.getQuery();
+
+//     if(paranoid === false){
+//         this.setQuery({ ...rest });
+//     } else {
+//         this.setQuery({ ...rest, deletedAt: { $exists: false } });
+//     }
+// }
+// )
+
 
 const userModel: Model<IUser> = mongoose.models.user || mongoose.model<IUser>("user", userSchema);
 export default userModel;

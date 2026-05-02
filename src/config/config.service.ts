@@ -17,3 +17,7 @@ export const REFRESH_SECRET_KEY_USER: string = process.env.REFRESH_SECRET_KEY_US
 export const REFRESH_SECRET_KEY_ADMIN: string = process.env.REFRESH_SECRET_KEY_ADMIN!;
 export const PREFIX_USER: string = process.env.PREFIX_USER!;
 export const PREFIX_ADMIN: string = process.env.PREFIX_ADMIN!;
+export const AWS_SECRET_ACCESS_KEY: string = process.env.AWS_SECRET_ACCESS_KEY!;
+export const AWS_ACCESS_KEY: string = process.env.AWS_ACCESS_KEY!;
+export const AWS_BUCKET_NAME: string = process.env.AWS_BUCKET_NAME!;
+export const AWS_REGION: string = process.env.AWS_REGION!;

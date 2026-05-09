@@ -6,6 +6,7 @@ import { JwtPayload } from "jsonwebtoken";
 import userModel, { IUser } from "../../DB/models/user.model";
 import redisService from "../service/redis.service";
 import { roleEnum } from "../enum/user.enum";
+import { HydratedDocument } from "mongoose";
 
 
 export interface ITokenPayload extends JwtPayload {

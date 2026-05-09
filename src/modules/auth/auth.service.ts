@@ -18,12 +18,14 @@ import { providerEnum, roleEnum } from "../../common/enum/user.enum";
 import { ITokenPayload } from "../../common/middleware/authentication";
 import { OAuth2Client } from "google-auth-library";
 import RedisService from "../../common/service/redis.service";
+import notificationService from "../../common/service/notification.service";
 
 
 class AuthService {
 
   private readonly _userRepo = new UserRepository();
   private readonly _redisService = RedisService;
+  private readonly _notificationService = notificationService;
   constructor() { };
 
   private sendEmailOtp = async ({ email, subject }: { email: string, subject: string }) => {
@@ -125,7 +127,7 @@ class AuthService {
   };
 
   signIn = async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password }: signInDto = req.body;
+    const { email, password, fcm }: signInDto = req.body;
 
     await this.checkBlocked({ email, subject: blockEnum.login, tries: 5 });
 
@@ -149,7 +151,7 @@ class AuthService {
       payload: { id: user._id, email },
       secret_key: user.role === roleEnum.user ? ACCESS_SECRET_KEY_USER : ACCESS_SECRET_KEY_ADMIN,
       options: {
-        expiresIn: 60 * 30,
+        expiresIn: "1day",
         jwtid,
         // noTimestamp: true,
         // notBefore: "1m",
@@ -168,6 +170,19 @@ class AuthService {
         // jwtid: uuidv4()
       },
     });
+
+    if(fcm){
+      await this._redisService.addFCM({userId: user?._id, FCMToken: fcm});
+      const tokens = await this._redisService.getFCMs(user._id);
+
+      await this._notificationService.sendNotifications({
+        tokens,
+        data:{
+          title: `New Login On Your Account`,
+          body: `There is a new device logged in your account`
+        }
+      })
+    }
 
     res.status(200).json({ message: "User signedin successfully", data: { access_token, refresh_token } });
   };

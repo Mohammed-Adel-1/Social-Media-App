@@ -8,9 +8,9 @@ class RedisService {
 
     private readonly client;
 
-    constructor( ) {
+    constructor() {
         this.client = createClient({
-            url : REDIS_URL 
+            url: REDIS_URL
         });
         this.handleEvent();
     }
@@ -27,44 +27,44 @@ class RedisService {
     }
 
 
-    revoked_key = ({ userId, jti }: {userId: Types.ObjectId, jti: string}) => {
-      return `revoke_token::${userId}::${jti}`;
+    revoked_key = ({ userId, jti }: { userId: Types.ObjectId, jti: string }) => {
+        return `revoke_token::${userId}::${jti}`;
     };
-    
-    get_key = (userId: Types.ObjectId)=> {
+
+    get_key = (userId: Types.ObjectId) => {
         return `revoke_token::${userId}`;
     };
-    
-    
-    otp_key = ({email, subject}: {email: string, subject: string})=> {
+
+
+    otp_key = ({ email, subject }: { email: string, subject: string }) => {
         return `otp::${email}::${subject}`;
     };
-    
-    max_otp_key = ({email, subject}: {email: string, subject: string})=> {
-        return `${this.otp_key({email, subject})}::max_tries`;
+
+    max_otp_key = ({ email, subject }: { email: string, subject: string }) => {
+        return `${this.otp_key({ email, subject })}::max_tries`;
     };
-    
-    blocked_otp_key = ({email, subject}: {email: string, subject: string})=> {
-        return `${this.otp_key({email, subject})}::block`;
+
+    blocked_otp_key = ({ email, subject }: { email: string, subject: string }) => {
+        return `${this.otp_key({ email, subject })}::block`;
     };
-    
-    
-    tries_key = ({email, subject}: {email: string, subject: string})=> {
+
+
+    tries_key = ({ email, subject }: { email: string, subject: string }) => {
         return `tries::${email}::${subject}`;
     };
-    
-    blocked_key = ({email, subject}: {email: string, subject: string})=> {
+
+    blocked_key = ({ email, subject }: { email: string, subject: string }) => {
         return `blocked::${email}::${subject}`;
     };
-    
-    
-    
-    
-    
-    
-    
-    
-    setValue = async ({ key, value, ttl}: {key: string, value: unknown, ttl?: number})=> {
+
+
+
+
+
+
+
+
+    setValue = async ({ key, value, ttl }: { key: string, value: unknown, ttl?: number }) => {
         try {
             const data = typeof value === "string" ? value : JSON.stringify(value);
             return ttl ? await this.client.set(key, data, { EX: ttl }) : await this.client.set(key, data);
@@ -72,10 +72,10 @@ class RedisService {
             console.log("Error to set data in redis", error);
         }
     };
-    
-    update = async ({ key, value }: {key: string, value: string })=> {
+
+    update = async ({ key, value }: { key: string, value: string }) => {
         try {
-            if(!await this.client.exists(key)){
+            if (!await this.client.exists(key)) {
                 return 0
             }
             const data = typeof value === "string" ? value : JSON.stringify(value);
@@ -84,13 +84,13 @@ class RedisService {
             console.log("Error to update data in redis", error);
         }
     };
-    
-    get = async (key: string)=> {
+
+    get = async (key: string) => {
         try {
             const data = await this.client.get(key);
-    
-            if(!data) return null;
-    
+
+            if (!data) return null;
+
             try {
                 return JSON.parse(data);
             } catch (error) {
@@ -100,54 +100,80 @@ class RedisService {
             console.log("Error to get data in redis", error);
         }
     };
-    
-    deleteKey = async (key: string)=> {
+
+    deleteKey = async (key: string) => {
         try {
             return await this.client.del(key);
         } catch (error) {
             console.log("Error to delete data in redis", error);
         }
     };
-    
-    ttl = async (key: string)=> {
+
+    ttl = async (key: string) => {
         try {
             return await this.client.ttl(key);
         } catch (error) {
             console.log("Error to get ttl in redis", error);
         }
     };
-    
-    exists = async (key: string)=> {
+
+    exists = async (key: string) => {
         try {
             return await this.client.exists(key);
         } catch (error) {
             console.log("Error to check data exists in redis", error);
         }
     };
-    
-    keys = async (pattern: string)=> {
+
+    keys = async (pattern: string) => {
         try {
             return await this.client.keys(`${pattern}*`);
         } catch (error) {
             console.log("Error to get keys in redis", error);
         }
     };
-    
-    incr = async (key: string)=> {
+
+    incr = async (key: string) => {
         try {
             return await this.client.incr(key);
         } catch (error) {
             console.log("Fail to increment key", error);
         }
     };
-    
-    expire = async ({key, ttl}: {key: string, ttl: number})=> {
+
+    expire = async ({ key, ttl }: { key: string, ttl: number }) => {
         try {
             return await this.client.expire(key, ttl);
         } catch (error) {
             console.log("Fail to expire key", error);
         }
     };
+
+
+
+    key(userId: Types.ObjectId) {
+        return `user:FCM:${userId}`;
+    }
+
+    async addFCM({ userId, FCMToken }: { userId: Types.ObjectId, FCMToken: string }) {
+        return await this.client.sAdd(this.key(userId), FCMToken);
+    }
+
+    async removeFCM({ userId, FCMToken }: { userId: Types.ObjectId, FCMToken: string }) {
+        return await this.client.sRem(this.key(userId), FCMToken);
+    }
+
+    async getFCMs(userId: Types.ObjectId) {
+        return await this.client.sMembers(this.key(userId));
+    }
+
+    async hasFCMs(userId: Types.ObjectId) {
+        return await this.client.sCard(this.key(userId));
+    }
+
+    async removeFCMUser(userId: Types.ObjectId) {
+        return await this.client.del(this.key(userId));
+    }
 }
 
 export default new RedisService();

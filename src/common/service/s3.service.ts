@@ -190,5 +190,14 @@ export class S3Service {
         return await this.client.send(command);
     }
 
+    async deleteFolder(folderName: string) {
+        const data = await this.getFiles(folderName);
+
+        const keysMapped = data.Contents?.map((k)=>{
+            return k.Key;
+        });
+
+        return await this.deleteFiles(keysMapped as string[])
+    }
 
 }

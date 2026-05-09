@@ -10,6 +10,13 @@ export const validation = (schema: schemaType) => {
         const validationError = [];
         for (const key of Object.keys(schema) as reqType[]) {
             if(!schema[key]) continue;
+            if(req?.file){
+                req.body.attachment = req.file
+            }
+            if(req?.files){
+                req.body.attachments = req.files
+            }
+
             const result = await schema[key].safeParseAsync(req[key]);
 
             if(!result.success){

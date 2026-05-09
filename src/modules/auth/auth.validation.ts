@@ -27,7 +27,8 @@ export const signUpSchema = {
 export const signInSchema = {
     body: z.object({
         email: z.email(),
-        password: z.string().min(6)
+        password: z.string().min(6),
+        fcm: z.string(),
     })
 };
 

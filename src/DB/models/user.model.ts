@@ -20,12 +20,13 @@ export interface IUser {
     address?: string,
     gender?: string,
     confirmed?: Boolean,
-    profilePic?: string
+    profilePic?: string,
     role: string,
     provider: string,
     createdAt: Date,
     updatedAt: Date,
-    changeCredential: Date
+    changeCredential: Date,
+    friends: Types.ObjectId[]
 }
 
 
@@ -68,7 +69,6 @@ const userSchema = new mongoose.Schema<IUser>({
     },
     phone: {
         type: String,
-        required: systemOnlyRequired,
         trim: true,
     },
     address: {
@@ -95,6 +95,7 @@ const userSchema = new mongoose.Schema<IUser>({
     confirmed: Boolean,
     changeCredential: Date,
     profilePic: String,
+    friends: [ Types.ObjectId ],
 
 }, {
     timestamps: true,
@@ -125,16 +126,6 @@ userSchema.pre('findOneAndUpdate', async function () {
     }
 });
 
-// userSchema.pre('findOne', function() {
-//     const {paranoid, ...rest} = this.getQuery();
-
-//     if(paranoid === false){
-//         this.setQuery({ ...rest });
-//     } else {
-//         this.setQuery({ ...rest, deletedAt: { $exists: false } });
-//     }
-// }
-// )
 
 
 const userModel: Model<IUser> = mongoose.models.user || mongoose.model<IUser>("user", userSchema);

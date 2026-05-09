@@ -5,6 +5,7 @@ import { AppError } from "../../common/utils/golbal.error.handler";
 import { compare, hash } from "../../common/utils/security/hash";
 import RedisService from "../../common/service/redis.service";
 import { S3Service } from "../../common/service/s3.service";
+import { pipeline } from "node:stream/promises";
 
 class userService {
 
@@ -37,7 +38,6 @@ class userService {
     res.status(200).json({ message: "Password has changed successfully" });
   };
 
-
   logOut = async (req: Request, res: Response, next: NextFunction) => {
     const { flag }: logOutDto = req.query;
 
@@ -56,7 +56,7 @@ class userService {
 
       const userKeys = await this._redisService.keys(this._redisService.get_key(req.user._id));
       if (userKeys && userKeys.length) {
-        for(let i=0; i<userKeys.length; i++){
+        for (let i = 0; i < userKeys.length; i++) {
           await this._redisService.deleteKey(userKeys[i] as string);
         }
       }
@@ -71,20 +71,57 @@ class userService {
 
     }
 
-    res.status(200).json({message: "User logged out successfully"});
+    res.status(200).json({ message: "User logged out successfully" });
   };
 
-  uploadImage = async (req: Request, res: Response, next: NextFunction) => {
+  uploadProfileImage = async (req: Request, res: Response, next: NextFunction) => {
 
-    const key = await this._s3Service.uploadLargeFile({
+    const key = await this._s3Service.uploadFile({
       file: req.file!,
-      path: "users/large"
+      path: "users"
     });
 
-    res.status(200).json({message: "Image uploaded successfully", date: key});
-  };
-  
-}
+    if (!req.user) {
+      throw new AppError("User not authorized")
+    }
 
+    await this._userModel.findByIdAndUpdate({
+      id: req.user._id,
+      update: { profilePic: key }
+    })
+
+    res.status(200).json({ message: "Image uploaded successfully", data: key });
+  };
+
+  getProfileImage = async (req: Request, res: Response, next: NextFunction) => {
+    const { path } = req.params as { path: string[] };
+    const { download } = req.query;
+    const Key = path.join("/") as string;
+
+    const result = await new S3Service().getFile(Key);
+    const stream = result.Body as NodeJS.ReadableStream;
+    res.setHeader("Content-Type", result.ContentType!);
+    if (download && download === "true") {
+      res.setHeader("Content-Disposition", `attachment; filename="${path.pop()}"`);
+    }
+
+    await pipeline(stream, res);
+  };
+
+  deleteProfileImage = async (req: Request, res: Response, next: NextFunction) => {
+    if(!req.user){
+      throw new AppError("Not Authorized")
+    }
+
+    
+    await this._s3Service.deleteFile(req.user.profilePic!);
+
+    this._userModel.findByIdAndUpdate({id: req.user._id!, update: {$unset: {profilePic: ""}}});
+
+    res.status(200).json({message: "Profile picture is deleted successfully"});
+  };
+
+
+}
 
 export default new userService;

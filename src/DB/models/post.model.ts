@@ -64,6 +64,11 @@ const postSchema = new mongoose.Schema<IPost>({
     toObject: { virtuals: true },
 });
 
+postSchema.virtual("comments", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "refId",
+});
 
 // soft delete
 postSchema.pre('findOne', function() {

@@ -13,6 +13,8 @@ import { S3Service } from "./common/service/s3.service";
 import { pipeline } from "node:stream/promises";
 import postRouter from "./modules/post/post.controller";
 import commentRouter from "./modules/comment/comment.controller";
+import { graphql, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString } from "graphql";
+import { createHandler } from "graphql-http/lib/use/express";
 const app: express.Application = express();
 const port: number = Number(PORT);
 
@@ -31,6 +33,58 @@ const bootstrap = () => {
 
     app.use(express.json());
     app.use(cors(), helmet(), limiter);
+
+    
+    const users = [
+        {id: 1, name: "Mohammed", age: 19},
+        {id: 2, name: "Ahmed", age: 21},
+        {id: 3, name: "Jana", age: 18},
+    ]
+
+    const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+            name: "graph",
+            description: "say hello, or Mohammed",
+            fields: {
+                getUser: {
+                    type: new GraphQLObjectType({
+                        name: "User",
+                        fields: {
+                            id: {type: GraphQLInt},
+                            name: {type: GraphQLString},
+                            age: {type: GraphQLInt},
+                        }
+                    }),
+                    args: {
+                        id: { type: new GraphQLNonNull(GraphQLInt)}
+                    } ,
+                    resolve: (parent, args) => {
+                        const user = users.find(user=>user.id===args.id);
+                        if(!user){
+                            throw new AppError("Invalid ID")
+                        }
+                        return user
+                    }
+                },
+                getUsers: {
+                    type: new GraphQLList (new GraphQLObjectType({
+                        name: "Users",
+                        fields: {
+                            id: {type: GraphQLInt},
+                            name: {type: GraphQLString},
+                            age: {type: GraphQLInt},
+                        }
+                    })),
+                    resolve: () => {
+                        return users
+                    }
+                }
+            }
+        })
+    });
+
+
+    app.use("/sayHello", createHandler({ schema }));
 
     // app.get("/upload", async(req: Request, res: Response, next: NextFunction) => {
 

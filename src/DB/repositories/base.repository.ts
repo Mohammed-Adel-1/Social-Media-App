@@ -14,7 +14,7 @@ abstract class BaseRepository<TDocument> {
         return this.model.findById(id);
     };
 
-    async findOne({filter, projection}: {filter: QueryFilter<TDocument>, projection?: ProjectionType<TDocument>}): Promise<HydratedDocument<TDocument> | null> {
+    async findOne({filter, projection, options}: {filter: QueryFilter<TDocument>, projection?: ProjectionType<TDocument>, options?: QueryOptions<TDocument>}): Promise<HydratedDocument<TDocument> | null> {
         return this.model.findOne(filter, projection);
     };
 

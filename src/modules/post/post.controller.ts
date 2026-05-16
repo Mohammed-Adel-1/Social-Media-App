@@ -4,11 +4,13 @@ import { validation } from "../../common/middleware/validation";
 import { createPostSchema, reactSchema, updatePostSchema } from "./post.validation";
 import authentication from "../../common/middleware/authentication";
 import { multerCloud } from "../../common/middleware/multer.cloud";
+import commentRouter from "../comment/comment.controller";
 
 
 
 const postRouter = Router();
 
+postRouter.use("/:postId/comments", commentRouter)
 
 postRouter.post("/",authentication, multerCloud().array("attachments"), validation(createPostSchema), postService.createPost);
 

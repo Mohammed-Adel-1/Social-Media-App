@@ -103,7 +103,16 @@ class postService {
             ]
           } : {}
         )
-      }
+      },
+      populate: [
+        {
+          path: "comments",
+          populate: [
+            { path: "replies" }
+          ]
+        },
+
+      ]
     })
 
     res.status(200).json({ data: posts });
@@ -160,7 +169,7 @@ class postService {
       ];
     }
 
-    const post = await this._postRepo.findByIdAndUpdate({ id: new Types.ObjectId(postId as string), update, options: {updatePipeline: true}});
+    const post = await this._postRepo.findByIdAndUpdate({ id: new Types.ObjectId(postId as string), update, options: { updatePipeline: true } });
 
 
     if (!post) {
@@ -176,7 +185,7 @@ class postService {
 
     const post = await this._postRepo.findOne({
       filter: {
-        _id: postId,
+        _id: new Types.ObjectId(postId as string),
         createdBy: req?.user?._id!,
       }
     })

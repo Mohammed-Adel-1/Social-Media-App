@@ -22,3 +22,8 @@ export enum reactEnum {
     care = "care",
     angry = "angry"
 }
+
+export enum onModelEnum {
+    post = "post",
+    comment = "comment"
+}

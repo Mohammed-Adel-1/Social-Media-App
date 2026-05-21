@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/golbal.error.handler";
+import { GraphQLError } from "graphql";
 
 
 const authorization = (roles: string[] = []) => {
@@ -12,6 +13,18 @@ const authorization = (roles: string[] = []) => {
         }
         next();
     } 
+}
+
+export const authorization_gql = (roles: string[] = [], role: string) => {
+        if(!roles.includes(role)){
+            throw new GraphQLError("You are not authorized", {
+                extensions: {
+                    code: "FORBIDDEN",
+                    status: 403,
+                    message: "You don't have permission to access this resource"
+                }
+            });
+        }
 }
 
 export default authorization;

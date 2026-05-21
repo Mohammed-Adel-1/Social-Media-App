@@ -171,13 +171,13 @@ class AuthService {
       },
     });
 
-    if(fcm){
-      await this._redisService.addFCM({userId: user?._id, FCMToken: fcm});
+    if (fcm) {
+      await this._redisService.addFCM({ userId: user?._id, FCMToken: fcm });
       const tokens = await this._redisService.getFCMs(user._id);
 
       await this._notificationService.sendNotifications({
         tokens,
-        data:{
+        data: {
           title: `New Login On Your Account`,
           body: `There is a new device logged in your account`
         }
@@ -394,6 +394,16 @@ class AuthService {
 
     res.status(200).json({ message: "Refresh Token done", data: { access_token } })
   };
+
+  //============================= GraphQL =============================
+
+  getUsers = async() => {
+    return await this._userRepo.find({filter: {}});
+  }
+
+  getuser = async(id: Types.ObjectId) => {
+    return await this._userRepo.findOne({filter: {_id: id}});
+  }
 
 }
 

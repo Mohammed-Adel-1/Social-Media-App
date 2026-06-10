@@ -1,5 +1,7 @@
 node_modules/
 dist/
+SOCKET_CHAT_APP/
+FE/
 
 .env.development
 .env.production

@@ -11,13 +11,22 @@ const usersRouter = Router();
 
 
 usersRouter.patch("/update-password", authentication, validation(updatePasswordSchema), userService.updatePassword);
+
 usersRouter.post("/logout", authentication, userService.logOut);
+
+usersRouter.post("/add-friend", authentication, userService.addFriend);
+
+usersRouter.get("/profile", authentication, userService.getProfile);
+
 usersRouter.post("/upload",
     authentication,
     multerCloud({ custom_types: multer_enum.image }).single("attachment"),
     userService.uploadProfileImage);
+
 usersRouter.get("/upload/*path", userService.getProfileImage);
+
 usersRouter.delete("/upload/delete-image", authentication, userService.deleteProfileImage);
+
 
 
 export default usersRouter;

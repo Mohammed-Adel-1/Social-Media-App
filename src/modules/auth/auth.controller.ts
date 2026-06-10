@@ -2,12 +2,15 @@ import { Router } from "express";
 import AuthService from "./auth.service";
 import { validation } from "../../common/middleware/validation";
 import { confirmEmailSchema, resendOtpSchema, resetPasswordSchema, signInSchema, signUpSchema } from "./auth.validation";
+import chatRouter from "../chat/chat.controller";
 
 
 const authRouter = Router();
 
+authRouter.use("/:userId/chat", chatRouter)
 
-authRouter.post("/signup", validation(signUpSchema),AuthService.signUp);
+
+authRouter.post("/signup", validation(signUpSchema), AuthService.signUp);
 authRouter.post("/signin", validation(signInSchema),AuthService.signIn);
 authRouter.post("/signup/gmail", AuthService.signUpAndSignInWithGmail);
 authRouter.patch("/confirm-email", validation(confirmEmailSchema),AuthService.confirmEmail);

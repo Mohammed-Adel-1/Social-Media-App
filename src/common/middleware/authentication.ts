@@ -14,10 +14,7 @@ export interface ITokenPayload extends JwtPayload {
   email: string;
 };
 
-
-const authentication = async (req: Request, res: Response, next: NextFunction) => {
-  const { authorization } = req.headers;
-
+export const decodeToken_and_fetchUser = async (authorization: string) => {
   if (!authorization) throw new AppError("Token is required");
 
   const [prefix, token] = authorization.split(" ");
@@ -44,13 +41,21 @@ const authentication = async (req: Request, res: Response, next: NextFunction) =
   if (!user) throw new AppError("User not exist");
 
   if (user?.changeCredential?.getTime() > (decoded.iat ?? 0) * 1000) {
-    throw new Error("Invalid token, loggedout");
+    throw new AppError("Invalid token, loggedout");
   }
 
   const revokeToken = await redisService.get(redisService.revoked_key({ userId: user._id, jti: decoded.jti }));
   if (revokeToken) {
-    throw new Error("Invalid token revoked");
+    throw new AppError("Invalid token revoked");
   }
+
+  return {user, decoded};
+}
+
+const authentication = async (req: Request, res: Response, next: NextFunction) => {
+  const { authorization } = req.headers;
+
+  const {user, decoded} = await decodeToken_and_fetchUser(authorization!);
 
   req.user = user;
   req.decoded = decoded;
@@ -86,15 +91,15 @@ export const authentication_gql = async (authorization: string) => {
   if (!user) throw new AppError("User not exist");
 
   // if (user?.changeCredential?.getTime() > (decoded.iat ?? 0) * 1000) {
-  //   throw new Error("Invalid token, loggedout");
+  //   throw new AppError("Invalid token, loggedout");
   // }
 
   // const revokeToken = await redisService.get(redisService.revoked_key({ userId: user._id, jti: decoded.jti }));
   // if (revokeToken) {
-  //   throw new Error("Invalid token revoked");
+  //   throw new AppError("Invalid token revoked");
   // }
 
-  return {user, decoded};
+  return { user, decoded };
 };
 
 

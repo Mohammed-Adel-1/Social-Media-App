@@ -11,7 +11,7 @@ class NotificationService {
 
     constructor() {
 
-        const serviceAccount = JSON.parse(readFileSync(resolve(__dirname, '..//../config/social-app-6dc5d-firebase-adminsdk-fbsvc-196d8cb7e5.json')) as unknown as string);
+        const serviceAccount = JSON.parse(readFileSync(resolve(__dirname, '..//../config/social-app-6dc5d-firebase-adminsdk-fbsvc-54ef78f13e.json')) as unknown as string);
 
         this.client = admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)

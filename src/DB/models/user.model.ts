@@ -95,7 +95,7 @@ const userSchema = new mongoose.Schema<IUser>({
     confirmed: Boolean,
     changeCredential: Date,
     profilePic: String,
-    friends: [ Types.ObjectId ],
+    friends: [ {type: Types.ObjectId, ref: "user"} ],
 
 }, {
     timestamps: true,

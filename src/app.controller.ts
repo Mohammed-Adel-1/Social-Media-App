@@ -15,6 +15,11 @@ import postRouter from "./modules/post/post.controller";
 import commentRouter from "./modules/comment/comment.controller";
 import { createHandler } from "graphql-http/lib/use/express";
 import gql_schema from "./modules/graphql/graphql.shcema";
+import { Server } from "socket.io";
+import { decodeToken_and_fetchUser } from "./common/middleware/authentication";
+import usersService from "./modules/users/users.service";
+import socketGateway from "./modules/realtime/socket.gateway";
+import chatRouter from "./modules/chat/chat.controller";
 const app: express.Application = express();
 const port: number = Number(PORT);
 
@@ -94,6 +99,7 @@ const bootstrap = () => {
     app.use("/users", usersRouter);
     app.use("/post", postRouter);
     app.use("/comment", commentRouter);
+    app.use("/chat", chatRouter);
 
     app.get("/", (req: Request, res: Response, next: NextFunction) => {
         res.status(200).json({ message: "Welcome on SocialMedai App" })
@@ -106,10 +112,11 @@ const bootstrap = () => {
 
     app.use(globalErrorHandler);
 
-    app.listen(port, () => {
+    const httpServer = app.listen(port, () => {
         console.log(`Server is runnung on url http://localhost:${port}`);
+    });
 
-    })
+    socketGateway.initIo(httpServer);
 }
 
 export default bootstrap;

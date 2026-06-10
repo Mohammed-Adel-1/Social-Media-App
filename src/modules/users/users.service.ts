@@ -6,10 +6,15 @@ import { compare, hash } from "../../common/utils/security/hash";
 import RedisService from "../../common/service/redis.service";
 import { S3Service } from "../../common/service/s3.service";
 import { pipeline } from "node:stream/promises";
+import { Types } from "mongoose";
+import { successResponse } from "../../common/utils/successResponce";
+import ChatRepository from "../../DB/repositories/chat.repository";
+import { AWS_BUCKET_URL } from "../../config/config.service";
 
 class userService {
 
   private readonly _userModel = new UserRepository();
+  private readonly _chatModel = new ChatRepository();
   private readonly _redisService = RedisService;
   private readonly _s3Service = new S3Service();
   constructor() { };
@@ -74,6 +79,31 @@ class userService {
     res.status(200).json({ message: "User logged out successfully" });
   };
 
+  getProfile = async (req: Request, res: Response, next: NextFunction) => {
+    const user = await this._userModel.findOne({
+      filter: { _id: req.user?._id as Types.ObjectId },
+      options: {
+        populate: [
+          {
+            path: "friends"
+          }
+        ]
+      }
+    });
+
+    const groups = await this._chatModel.find({
+      filter:{
+        participants: {
+          $in: [req.user?._id!]
+        },
+        group: {$exists: true}
+      }
+    })
+
+    // console.log(user);
+    successResponse({ res, status: 200, message: "User Data", data: { user , groups} })
+  };
+
   uploadProfileImage = async (req: Request, res: Response, next: NextFunction) => {
 
     const key = await this._s3Service.uploadFile({
@@ -109,19 +139,41 @@ class userService {
   };
 
   deleteProfileImage = async (req: Request, res: Response, next: NextFunction) => {
-    if(!req.user){
+    if (!req.user) {
       throw new AppError("Not Authorized")
     }
 
-    
+
     await this._s3Service.deleteFile(req.user.profilePic!);
 
-    this._userModel.findByIdAndUpdate({id: req.user._id!, update: {$unset: {profilePic: ""}}});
+    this._userModel.findByIdAndUpdate({ id: req.user._id!, update: { $unset: { profilePic: "" } } });
 
-    res.status(200).json({message: "Profile picture is deleted successfully"});
+    res.status(200).json({ message: "Profile picture is deleted successfully" });
   };
 
+  addFriend = async (req: Request, res: Response, next: NextFunction) => {
+    const {userId} = req.body;
 
+    await this._userModel.findByIdAndUpdate({
+      id: new Types.ObjectId(userId as string),
+      update: {
+        $addToSet: {
+          friends: req.user?._id
+        }
+      }
+    });
+
+    await this._userModel.findByIdAndUpdate({
+      id: req.user?._id!,
+      update: {
+        $addToSet: {
+          friends: userId
+        }
+      }
+    });
+
+    successResponse({ res, message: "You are now friends" });
+  }
 }
 
 export default new userService;
